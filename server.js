@@ -8,7 +8,7 @@ const app = express();
 
 // ✅ CORS fixed for Wix & public websites:
 app.use(cors({
-  origin: '*', // Allow any origin (you can restrict this later)
+  origin: '*',
   methods: ['POST'],
   allowedHeaders: ['Content-Type']
 }));
@@ -39,4 +39,15 @@ app.post('/chat', async (req, res) => {
       ]
     });
 
-    res.json({ reply: completion.cho
+    res.json({ reply: completion.choices[0].message.content });
+  } catch (error) {
+    console.error('OpenAI API error:', error);
+    res.status(500).json({ error: 'Something went wrong' });
+  }
+});
+
+// ✅ Start server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
+});
