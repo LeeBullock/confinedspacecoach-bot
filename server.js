@@ -48,6 +48,9 @@ app.post('/chat', async (req, res) => {
 
 // ✅ Start server
 const PORT = process.env.PORT || 3000;
+app.get('/', (req, res) => {
+  res.send('🚀 Confined Space Coach Bot is running');
+});
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });
