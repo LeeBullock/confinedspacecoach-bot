@@ -6,7 +6,6 @@ require('dotenv').config();
 
 const app = express();
 
-// ✅ CORS fixed for Wix & public websites:
 app.use(cors({
   origin: '*',
   methods: ['POST'],
@@ -15,7 +14,6 @@ app.use(cors({
 
 app.use(bodyParser.json());
 
-// ✅ Set up OpenAI
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -46,11 +44,14 @@ app.post('/chat', async (req, res) => {
   }
 });
 
-// ✅ Start server
-const PORT = process.env.PORT || 3000;
+// ✅ Health check route
 app.get('/', (req, res) => {
   res.send('🚀 Confined Space Coach Bot is running');
 });
+
+// ✅ Start server
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });
+
