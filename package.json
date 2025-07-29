@@ -1,21 +1,14 @@
 {
   "name": "confinedspacecoachbot",
   "version": "1.0.0",
-  "main": "script.js",
+  "description": "",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/LeeBullock/confinedspacecoach-bot.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/LeeBullock/confinedspacecoach-bot/issues"
-  },
-  "homepage": "https://github.com/LeeBullock/confinedspacecoach-bot#readme",
-  "description": ""
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "body-parser": "^1.20.2"
+  }
 }

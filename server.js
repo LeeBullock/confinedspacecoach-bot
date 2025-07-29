@@ -1,57 +1,35 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const OpenAI = require('openai');
-require('dotenv').config();
+const path = require('path');
 
 const app = express();
+const PORT = 3000;
 
-app.use(cors({
-  origin: '*',
-  methods: ['POST'],
-  allowedHeaders: ['Content-Type']
-}));
-
+app.use(cors());
 app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname)));
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+app.post('/chat', (req, res) => {
+  const userMessage = req.body.message;
+  console.log("Received message:", userMessage);
 
-// ✅ POST /chat endpoint
-app.post('/chat', async (req, res) => {
-  try {
-    const userInput = req.body.message;
-
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4",
-      messages: [
-        {
-          role: "system",
-          content: "You are Confined Space Coach, a confined space training expert using UK HSE guidance, City & Guilds, and IIRSM content.",
-        },
-        {
-          role: "user",
-          content: userInput
-        }
-      ]
-    });
-
-    res.json({ reply: completion.choices[0].message.content });
-  } catch (error) {
-    console.error('OpenAI API error:', error);
-    res.status(500).json({ error: 'Something went wrong' });
+  if (!userMessage) {
+    return res.status(400).json({ error: 'No message provided' });
   }
+
+  // Replace this with actual logic later
+  const reply = `You asked: "${userMessage}". Here's a placeholder answer.`;
+
+  res.json({ reply });
 });
 
-// ✅ Health check route
+// Serve index.html by default
 app.get('/', (req, res) => {
-  res.send('🚀 Confined Space Coach Bot is running');
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// ✅ Start server
-const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
+  console.log(`Server listening on http://localhost:${PORT}`);
 });
 

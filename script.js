@@ -3,7 +3,7 @@ async function askChat() {
   const responseBox = document.getElementById('response');
   responseBox.innerHTML = "Thinking...";
 
-  const res = await fetch("https://confinedspacecoach-api.onrender.com/chat", {
+  const res = await fetch("http://localhost:3000/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ message: question })
