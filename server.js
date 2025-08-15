@@ -3,7 +3,7 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import OpenAI from "openai";
 import dotenv from "dotenv";
-import fetch from "node-fetch"; // <-- ensure fetch exists on Node
+import fetch from "node-fetch"; // ensure fetch exists on Node
 
 dotenv.config();
 
@@ -14,10 +14,13 @@ app.use(express.static(".")); // serves index.html, script.js
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// --- helper: POST to Apps Script and keep POST after Google's 302 redirect ---
+// --- Post to Apps Script and preserve POST on Google's redirect ---
 async function postToSheets(payload) {
   const url = process.env.SHEETS_WEBHOOK_URL;
-  if (!url) { console.warn("SHEETS_WEBHOOK_URL missing"); return { ok:false, error:"no webhook url" }; }
+  if (!url) {
+    console.warn("SHEETS_WEBHOOK_URL missing");
+    return { ok: false, error: "no webhook url" };
+  }
 
   try {
     // First request: don't auto-follow so we see the 301/302
@@ -51,7 +54,15 @@ async function postToSheets(payload) {
   }
 }
 
-// Quick test endpoint: hits Sheets without using the chatbot UI
+// Quick check: env + node version
+app.get("/_env", (req, res) => {
+  res.json({
+    hasSheetsUrl: Boolean(process.env.SHEETS_WEBHOOK_URL),
+    nodeVersion: process.version
+  });
+});
+
+// Quick test: write a row without using the chatbot UI
 app.get("/_logtest", async (req, res) => {
   const result = await postToSheets({
     question: "health-check",
@@ -83,10 +94,9 @@ or emergency action, say so and point to company procedures and HSE guidance.`;
     });
 
     const reply = completion.choices?.[0]?.message?.content ?? "Sorry, I couldn’t generate a reply.";
-    // respond to user immediately
     res.json({ reply });
 
-    // fire-and-forget logging (preserves POST on redirect)
+    // Fire-and-forget logging (uses redirect-safe helper)
     postToSheets({
       question: userMessage,
       answer: reply,
@@ -97,7 +107,6 @@ or emergency action, say so and point to company procedures and HSE guidance.`;
       userAgent: (req.headers["user-agent"] || "").toString(),
       referrer: (req.headers["referer"] || req.headers["referrer"] || "").toString()
     });
-
   } catch (error) {
     console.error("OpenAI error:", error);
     res.status(500).json({ error: "Something went wrong with AI." });
