@@ -3,7 +3,7 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import OpenAI from "openai";
 import dotenv from "dotenv";
-import fetch from "node-fetch"; // ensure fetch exists on Node
+import fetch from "node-fetch";
 
 dotenv.config();
 
@@ -14,13 +14,10 @@ app.use(express.static(".")); // serves index.html, script.js
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// --- Post to Apps Script and preserve POST on Google's redirect ---
+// POST to Apps Script and preserve POST across Google's redirect
 async function postToSheets(payload) {
   const url = process.env.SHEETS_WEBHOOK_URL;
-  if (!url) {
-    console.warn("SHEETS_WEBHOOK_URL missing");
-    return { ok: false, error: "no webhook url" };
-  }
+  if (!url) { console.warn("SHEETS_WEBHOOK_URL missing"); return { ok:false, error:"no webhook url" }; }
   try {
     const r1 = await fetch(url, {
       method: "POST",
@@ -31,11 +28,7 @@ async function postToSheets(payload) {
     if ([301,302,303,307,308].includes(r1.status)) {
       const loc = r1.headers.get("location");
       if (!loc) throw new Error("Redirect without Location header");
-      const r2 = await fetch(loc, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(payload)
-      });
+      const r2 = await fetch(loc, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) });
       const text2 = await r2.text();
       console.log("Sheets redirect POST:", r2.status, text2.slice(0,200));
       return { ok: r2.ok, status: r2.status, body: text2 };
@@ -50,22 +43,14 @@ async function postToSheets(payload) {
 }
 
 // env check
-app.get("/_env", (req, res) => {
-  res.json({
-    hasSheetsUrl: Boolean(process.env.SHEETS_WEBHOOK_URL),
-    nodeVersion: process.version
-  });
+app.get("/_env", (_req, res) => {
+  res.json({ hasSheetsUrl: Boolean(process.env.SHEETS_WEBHOOK_URL), nodeVersion: process.version });
 });
 
 // direct test to Sheets
-app.get("/_logtest", async (req, res) => {
-  const result = await postToSheets({
-    question: "health-check",
-    answer: "ok",
-    sessionId: "server-test",
-    pagePath: "/_logtest"
-  });
-  res.json({ sent: true, result });
+app.get("/_logtest", async (_req, res) => {
+  const result = await postToSheets({ question:"health-check", answer:"ok", sessionId:"server-test", pagePath:"/_logtest" });
+  res.json({ sent:true, result });
 });
 
 app.post("/chat", async (req, res) => {
