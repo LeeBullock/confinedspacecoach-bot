@@ -21,17 +21,13 @@ async function postToSheets(payload) {
     console.warn("SHEETS_WEBHOOK_URL missing");
     return { ok: false, error: "no webhook url" };
   }
-
   try {
-    // First request: don't auto-follow so we see the 301/302
     const r1 = await fetch(url, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(payload),
       redirect: "manual"
     });
-
-    // If Google redirects to script.googleusercontent.com, re-POST to that URL
     if ([301,302,303,307,308].includes(r1.status)) {
       const loc = r1.headers.get("location");
       if (!loc) throw new Error("Redirect without Location header");
@@ -44,7 +40,6 @@ async function postToSheets(payload) {
       console.log("Sheets redirect POST:", r2.status, text2.slice(0,200));
       return { ok: r2.ok, status: r2.status, body: text2 };
     }
-
     const text1 = await r1.text();
     console.log("Sheets direct POST:", r1.status, text1.slice(0,200));
     return { ok: r1.ok, status: r1.status, body: text1 };
@@ -54,7 +49,7 @@ async function postToSheets(payload) {
   }
 }
 
-// Quick check: env + node version
+// env check
 app.get("/_env", (req, res) => {
   res.json({
     hasSheetsUrl: Boolean(process.env.SHEETS_WEBHOOK_URL),
@@ -62,7 +57,7 @@ app.get("/_env", (req, res) => {
   });
 });
 
-// Quick test: write a row without using the chatbot UI
+// direct test to Sheets
 app.get("/_logtest", async (req, res) => {
   const result = await postToSheets({
     question: "health-check",
@@ -96,7 +91,6 @@ or emergency action, say so and point to company procedures and HSE guidance.`;
     const reply = completion.choices?.[0]?.message?.content ?? "Sorry, I couldn’t generate a reply.";
     res.json({ reply });
 
-    // Fire-and-forget logging (uses redirect-safe helper)
     postToSheets({
       question: userMessage,
       answer: reply,
