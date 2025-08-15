@@ -10,14 +10,18 @@ dotenv.config();
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static(".")); // serves index.html, script.js
+app.use(express.static("."));
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// POST to Apps Script and preserve POST across Google's redirect
+// TEMP fallback so logging works even if env var is missing
+const SHEETS_URL =
+  (process.env.SHEETS_WEBHOOK_URL && process.env.SHEETS_WEBHOOK_URL.trim()) ||
+  "https://script.google.com/macros/s/AKfycbxUtWOFcR3U9oBAeODt9I9rAPGk0h2UMSzV5pEv5tDf-Stu1u4mg6-dxtKLFDcZ28K0/exec?token=4878PHone2102Ho";
+
+// post to Apps Script; preserve POST across Google's redirect
 async function postToSheets(payload) {
-  const url = process.env.SHEETS_WEBHOOK_URL;
-  if (!url) { console.warn("SHEETS_WEBHOOK_URL missing"); return { ok:false, error:"no webhook url" }; }
+  const url = SHEETS_URL;
   try {
     const r1 = await fetch(url, {
       method: "POST",
@@ -28,7 +32,11 @@ async function postToSheets(payload) {
     if ([301,302,303,307,308].includes(r1.status)) {
       const loc = r1.headers.get("location");
       if (!loc) throw new Error("Redirect without Location header");
-      const r2 = await fetch(loc, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) });
+      const r2 = await fetch(loc, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(payload)
+      });
       const text2 = await r2.text();
       console.log("Sheets redirect POST:", r2.status, text2.slice(0,200));
       return { ok: r2.ok, status: r2.status, body: text2 };
@@ -42,15 +50,24 @@ async function postToSheets(payload) {
   }
 }
 
-// env check
+// quick env check
 app.get("/_env", (_req, res) => {
-  res.json({ hasSheetsUrl: Boolean(process.env.SHEETS_WEBHOOK_URL), nodeVersion: process.version });
+  res.json({
+    hasSheetsUrl: Boolean(SHEETS_URL),
+    source: process.env.SHEETS_WEBHOOK_URL ? "env" : "code",
+    nodeVersion: process.version
+  });
 });
 
 // direct test to Sheets
 app.get("/_logtest", async (_req, res) => {
-  const result = await postToSheets({ question:"health-check", answer:"ok", sessionId:"server-test", pagePath:"/_logtest" });
-  res.json({ sent:true, result });
+  const result = await postToSheets({
+    question: "health-check",
+    answer: "ok",
+    sessionId: "server-test",
+    pagePath: "/_logtest"
+  });
+  res.json({ sent: true, result });
 });
 
 app.post("/chat", async (req, res) => {
@@ -94,5 +111,5 @@ or emergency action, say so and point to company procedures and HSE guidance.`;
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () =>
-  console.log(`✅ Server running at http://localhost:${PORT} (sheetsWebhookSet=${Boolean(process.env.SHEETS_WEBHOOK_URL)})`)
+  console.log(`✅ Server running at http://localhost:${PORT} (sheetsWebhookSet=${Boolean(SHEETS_URL)})`)
 );
