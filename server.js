@@ -1,9 +1,18 @@
+
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import OpenAI from "openai";
 import dotenv from "dotenv";
 import fetch from "node-fetch";
+import express from 'express';
+import qaForwarder from './qaForwarder.js';     // ← add this import
+
+const app = express();
+app.use(express.json({ limit: '1mb' }));
+app.use(qaForwarder);                           // ← add this line
+
+// keep your existing routes (e.g., /chat) below
 
 dotenv.config();
 
