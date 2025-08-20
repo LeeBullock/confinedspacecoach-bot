@@ -1,27 +1,19 @@
-import qaForwarder from './qaForwarder.js';
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import OpenAI from "openai";
 import dotenv from "dotenv";
 import fetch from "node-fetch";
-import express from 'express';
-import qaForwarder from './qaForwarder.js';     // ← add this import
-
-const app = express();
-app.use(express.json({ limit: '1mb' }));   // if not already present
-app.use(qaForwarder);                      // mounts POST /coach/qa
-app.use(express.json({ limit: '1mb' }));
-app.use(qaForwarder);                           // ← add this line
-
-// keep your existing routes (e.g., /chat) below
+import qaForwarder from "./qaForwarder.js";
 
 dotenv.config();
 
 const app = express();
+app.use(express.json({ limit: "1mb" }));
 app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static("."));
+app.use(qaForwarder); // mounts POST /coach/qa
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
