@@ -1,4 +1,4 @@
-
+import qaForwarder from './qaForwarder.js';
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
@@ -9,6 +9,8 @@ import express from 'express';
 import qaForwarder from './qaForwarder.js';     // ← add this import
 
 const app = express();
+app.use(express.json({ limit: '1mb' }));   // if not already present
+app.use(qaForwarder);                      // mounts POST /coach/qa
 app.use(express.json({ limit: '1mb' }));
 app.use(qaForwarder);                           // ← add this line
 
