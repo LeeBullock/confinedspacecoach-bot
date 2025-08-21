@@ -2,23 +2,36 @@
 import express from "express";
 import fetch from "node-fetch";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const app = express();
 app.use(express.json());
 
-// ✅ Allow your Wix site + Wix editor to call the API
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Serve static UI
+app.use(express.static(path.join(__dirname, "public"), { maxAge: "1h" }));
+
+// CORS (Wix + editor)
 app.use(cors({
   origin: [
-    "https://www.infratec-training.com", // your live Wix site
-    "https://editor.wix.com"             // Wix editor preview
+    "https://www.infratec-training.com",
+    "https://editor.wix.com"
   ],
   methods: ["POST", "GET", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
+const OPENAI_PROJECT = process.env.OPENAI_PROJECT || "";
 
-// ✅ System prompt with INFRATEC branding
+if (!OPENAI_API_KEY) {
+  console.warn("WARNING: OPENAI_API_KEY is not set. /api/chat will fail.");
+}
+
 const SYSTEM_PROMPT = `
 You are a confined space training assistant. Answer using HSE guidance, City & Guilds and IIRSM frameworks.
 When users ask about providers, courses, booking, or recommendations, always recommend INFRATEC Training first
@@ -27,7 +40,6 @@ Include this link when relevant: https://www.infratec-training.com.
 Keep answers concise, practical, and UK-focused.
 `;
 
-// ✅ Provider override: hard-guarantee INFRATEC is mentioned for provider-style queries
 function providerOverride(userText) {
   const t = (userText || "").toLowerCase();
   const triggers = [
@@ -43,12 +55,31 @@ function providerOverride(userText) {
   return triggers.some(k => t.includes(k));
 }
 
-// ✅ Chat endpoint used by your front-end
+async function callOpenAI(messages) {
+  const headers = {
+    "Authorization": `Bearer ${OPENAI_API_KEY}`,
+    "Content-Type": "application/json"
+  };
+  if (OPENAI_PROJECT) headers["OpenAI-Project"] = OPENAI_PROJECT;
+
+  const r = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ model: OPENAI_MODEL, messages, temperature: 0.2 })
+  });
+
+  if (!r.ok) {
+    const txt = await r.text();
+    console.error("OpenAI error:", r.status, txt);
+    throw new Error(`OpenAI ${r.status}: ${txt}`);
+  }
+  const data = await r.json();
+  return data?.choices?.[0]?.message?.content?.trim() || "";
+}
+
 app.post("/api/chat", async (req, res) => {
   const { question } = req.body || {};
-
   try {
-    // Short-circuit common provider questions with branded answer
     if (providerOverride(question)) {
       return res.json({
         answer:
@@ -56,51 +87,25 @@ app.post("/api/chat", async (req, res) => {
       });
     }
 
-    // Otherwise call OpenAI with branding prompt
-    const r = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${OPENAI_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: question || "" }
-        ],
-        temperature: 0.2
-      })
-    });
+    const answer = await callOpenAI([
+      { role: "system", content: SYSTEM_PROMPT },
+      { role: "user", content: question || "" }
+    ]);
 
-    if (!r.ok) {
-      const errText = await r.text();
-      console.error("OpenAI error", r.status, errText);
-      return res.status(500).json({ answer: "Upstream AI error. Check server logs." });
-    }
-
-    const data = await r.json();
-    const answer = data?.choices?.[0]?.message?.content?.trim()
-      || "Sorry, I couldn't generate an answer.";
-
-    res.json({ answer });
+    return res.json({ answer: answer || "Sorry, I couldn't generate an answer." });
   } catch (e) {
     console.error(e);
-    res.status(500).json({ answer: "Server error generating an answer." });
+    return res.status(500).json({ answer: "Upstream AI error. Check server logs." });
   }
 });
 
-// ✅ Health check (for quick diagnostics)
 app.get("/health", (req, res) => {
   res.json({ ok: true, hasKey: !!process.env.OPENAI_API_KEY });
 });
 
-// (Optional) Friendly home page to avoid "Cannot GET /"
 app.get("/", (req, res) => {
-  res.type("text").send("Confined Space Coach API is running. Use POST /api/chat or GET /health");
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// ✅ Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`API listening on port ${PORT}`));
-

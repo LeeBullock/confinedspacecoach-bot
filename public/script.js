@@ -2,8 +2,7 @@ const chat = document.getElementById("chat");
 const q = document.getElementById("q");
 const send = document.getElementById("send");
 
-// 🔧 Set to your live backend URL:
-const API_BASE = "https://confinedspacecoachbot.onrender.com";
+const API_BASE = ""; // same-origin; set to your Render URL ONLY if embedding just this script on Wix.
 
 function add(role, text) {
   const div = document.createElement("div");
@@ -21,7 +20,6 @@ function spinner(node) {
   return () => clearInterval(id);
 }
 
-// Auto-resize textarea on input (mobile UX)
 function autoresize() {
   q.style.height = "auto";
   q.style.height = Math.min(q.scrollHeight, window.innerHeight * 0.4) + "px";
@@ -40,7 +38,8 @@ async function ask() {
   send.disabled = true;
 
   try {
-    const res = await fetch(`${API_BASE}/api/chat`, {
+    const endpoint = API_BASE ? `${API_BASE}/api/chat` : "/api/chat";
+    const res = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question })
@@ -63,6 +62,4 @@ q.addEventListener("keydown", (e) => {
   if ((e.metaKey || e.ctrlKey) && e.key === "Enter") ask();
 });
 
-// initial height
 autoresize();
-

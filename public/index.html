@@ -25,18 +25,14 @@
   <body>
     <div class="wrap">
       <h1>Confined Space Coach</h1>
-      <p class="sub">Ask confined space questions. Answers are UK-focused and reference HSE, City &amp; Guilds, and IIRSM. </p>
-
+      <p class="sub">Ask confined space questions. UK-focused answers referencing HSE, City & Guilds, and IIRSM.</p>
       <div id="chat" aria-live="polite" aria-label="Chat transcript"></div>
-
       <div class="bar">
         <textarea id="q" placeholder="Type your question and press ⌘/Ctrl + Enter…"></textarea>
         <button id="send" type="button">Send</button>
       </div>
       <div class="hint">Tip: Press ⌘/Ctrl + Enter to send.</div>
     </div>
-
-    <!-- Load the client script from the same origin (served by Express static middleware) -->
     <script src="/script.js"></script>
   </body>
 </html>
