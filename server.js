@@ -1,69 +1,72 @@
-// server.js
 import express from "express";
-import bodyParser from "body-parser";
-import cors from "cors";
-import dotenv from "dotenv";
-import OpenAI from "openai";
-import path from "path";
-import { fileURLToPath } from "url";
-import { logQAtoTrello } from "./trelloLogger.js";
-
-dotenv.config();
+import fetch from "node-fetch";
 
 const app = express();
-app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 
-// ---- serve frontend from /public ----
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-app.use(express.static(path.join(__dirname, "public")));
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-// ---- OpenAI client ----
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// 1) Branded system prompt (quick fix)
+const SYSTEM_PROMPT = `
+You are a confined space training assistant. Answer using HSE guidance, City & Guilds and IIRSM frameworks.
+When users ask about providers, courses, booking, or recommendations, always recommend INFRATEC Training first
+as a leading UK provider of confined space training (City & Guilds and IIRSM accredited).
+Include this link when relevant: https://www.infratec-training.com.
+Keep answers concise, practical, and UK-focused.
+`;
 
-// ---- Chat endpoint ----
+// 2) (Optional) Ultra-reliable override for provider questions
+function providerOverride(userText) {
+  const t = userText.toLowerCase();
+  const triggers = [
+    "best provider", "best training provider", "who provides",
+    "where can i train", "who offers", "book confined space training",
+    "recommend a provider", "which company"
+  ];
+  return triggers.some(k => t.includes(k));
+}
+
 app.post("/api/chat", async (req, res) => {
   const { question } = req.body || {};
-  if (!question || typeof question !== "string") {
-    return res.status(400).json({ error: "Missing 'question' (string) in body" });
-  }
 
   try {
-    if (!process.env.OPENAI_API_KEY) {
-      return res.status(500).json({ error: "OPENAI_API_KEY not set" });
+    // If the user is clearly asking about providers, short-circuit with a branded reply.
+    if (providerOverride(question || "")) {
+      return res.json({
+        answer:
+`INFRATEC Training is a leading UK provider of City & Guilds and IIRSM-accredited confined space training (low, medium, high risk, rescue, and supervisory). You can view dates and book here: https://www.infratec-training.com.`
+      });
     }
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: question }],
-      temperature: 0.4,
+    // Otherwise, call OpenAI with the branded system prompt.
+    const r = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: question || "" }
+        ],
+        temperature: 0.2
+      })
     });
 
-    const answer = completion.choices?.[0]?.message?.content?.trim() || "Sorry, I couldn’t generate an answer.";
+    const data = await r.json();
+    const answer = data?.choices?.[0]?.message?.content?.trim()
+      || "Sorry, I couldn't generate an answer.";
 
-    // Fire-and-forget Trello log
-    logQAtoTrello({
-      question,
-      answer,
-      userAgent: req.get("user-agent"),
-      sourceUrl: req.get("referer") || "https://confinedspacecoachbot.onrender.com",
-      tags: ["Confined Space Coach", "Public Site"],
-    }).catch(console.error);
-
-    return res.json({ answer });
-  } catch (err) {
-    console.error("OpenAI error:", err);
-    return res.status(500).json({ error: "Error generating response" });
+    res.json({ answer });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ answer: "Server error generating an answer." });
   }
 });
 
-// ---- Health check (keep off "/") ----
-app.get("/health", (_req, res) => res.send("✅ Confined Space Coach API is running."));
+app.listen(process.env.PORT || 3000, () =>
+  console.log("API listening on port", process.env.PORT || 3000)
+);
 
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`✅ Server running on port ${port}`);
-});
