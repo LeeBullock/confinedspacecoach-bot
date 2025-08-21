@@ -3,32 +3,134 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Confined Space Coach</title>
+  <title>Confined Space Coach · INFRATEC Training</title>
+  <meta name="theme-color" content="#0B3D91" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Pick one font; easy to swap later -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
   <style>
-    body { font-family: system-ui, Arial, sans-serif; margin:0; padding:24px; }
-    .wrap { max-width: 760px; margin: 0 auto; }
-    .meta { color:#2c7; margin-bottom: 8px; }
-    h1 { font-size: 20px; margin: 0 0 16px; }
-    .chat { border:1px solid #ddd; border-radius:12px; padding:16px; min-height:240px; display:flex; flex-direction:column; }
-    .msg { padding:8px 10px; border-radius:10px; margin:6px 0; max-width: 90%; white-space: pre-wrap; }
-    .user { background:#eef6ff; align-self:flex-end; }
-    .bot { background:#f6f6f6; align-self:flex-start; }
-    .row { display:flex; gap:8px; margin-top:12px; }
-    textarea { flex:1; min-height:60px; padding:10px; border-radius:8px; border:1px solid #ddd; }
-    button { padding:10px 14px; border:none; border-radius:8px; cursor:pointer; }
+    :root{
+      /* Tweak these to match your brand */
+      --brand: #0B3D91;       /* primary (blue) */
+      --brand-2: #ED1C24;     /* accent (red) */
+      --ink: #0f172a;         /* text */
+      --muted: #64748b;       /* secondary text */
+      --bg: #f7fafc;          /* page */
+      --card: #ffffff;        /* panels */
+      --ring: rgba(11,61,145,0.2);
+      --radius: 14px;
+    }
+
+    *{ box-sizing:border-box }
+    html,body{ height:100% }
+    body{
+      margin:0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background: radial-gradient(1200px 600px at 80% -10%, #e6f0ff 0, transparent 60%), var(--bg);
+    }
+
+    .shell{
+      max-width: 980px; margin: 0 auto; padding: 24px;
+    }
+
+    header{
+      display:flex; align-items:center; gap:16px; margin-bottom:18px;
+    }
+    .logo{
+      width:48px; height:48px; border-radius:12px; display:grid; place-items:center;
+      background: #fff; box-shadow: 0 6px 18px rgba(11,61,145,.15), 0 1px 0 rgba(11,61,145,.25) inset;
+      overflow:hidden;
+    }
+    .logo img{ width:100%; height:100%; object-fit:cover }
+    .brand h1{
+      font-size: 20px; line-height:1.15; margin:0 0 2px 0; font-weight: 700;
+    }
+    .brand p{
+      margin:0; color: var(--muted); font-size: 14px;
+    }
+
+    .surface{
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(2,12,27,.07);
+      padding: 18px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .chat{
+      display:flex; flex-direction:column; gap:10px; min-height: 260px;
+    }
+
+    .msg{
+      padding: 10px 12px; border-radius: 12px; max-width: 88%; white-space: pre-wrap;
+      border: 1px solid #edf2f7;
+    }
+    .msg.user{ align-self:flex-end; background: #f0f7ff; border-color: #dbeafe }
+    .msg.bot{ align-self:flex-start; background: #fafafa }
+
+    .row{ display:flex; gap:10px; margin-top:14px }
+    textarea{
+      flex:1; min-height: 64px; resize: vertical;
+      padding:12px 14px; border-radius: 12px; border: 1px solid #dfe3ea; background:#fff;
+      outline: none; font-size: 15px; line-height:1.35; color: var(--ink);
+      box-shadow: 0 0 0 3px transparent;
+    }
+    textarea:focus{ border-color: var(--brand); box-shadow: 0 0 0 3px var(--ring) }
+    button{
+      padding: 12px 16px; border: none; border-radius: 12px; cursor: pointer; font-weight: 600;
+      background: linear-gradient(180deg, var(--brand), #082e6d);
+      color: #fff; transition: transform .04s ease, box-shadow .2s ease;
+      box-shadow: 0 8px 20px rgba(11,61,145,.22);
+    }
+    button:hover{ transform: translateY(-1px) }
+    button:active{ transform: translateY(0) }
+
+    .meta{
+      display:flex; align-items:center; gap:8px; color:#0f9d58; font-size:14px; margin-bottom:10px;
+    }
+    .dot{ width:10px; height:10px; border-radius:50%; background:#0f9d58 }
+
+    footer{
+      margin-top:14px; color: var(--muted); font-size: 12.5px; display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    }
+    a{ color: var(--brand) ; text-decoration: none }
+    a:hover{ text-decoration: underline }
+    .accent{ color: var(--brand-2); font-weight: 600 }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="meta">✅ Confined Space Coach is ready.</div>
-    <h1>Ask a confined space question</h1>
-    <div id="chat" class="chat"></div>
-    <div class="row">
-      <textarea id="q" placeholder="Type your question… (Cmd/Ctrl + Enter to send)"></textarea>
-      <button id="send">Ask</button>
+  <div class="shell">
+    <header>
+      <div class="logo">
+        <!-- put your logo at /public/logo.png (or it will fall back to initials) -->
+        <img src="/logo.png" alt="INFRATEC logo" onerror="this.outerHTML='<span class=&quot;accent&quot;>IN</span>'">
+      </div>
+      <div class="brand">
+        <h1>Confined Space Coach</h1>
+        <p>by INFRATEC Training</p>
+      </div>
+    </header>
+
+    <div class="surface">
+      <div class="meta"><span class="dot"></span> Ready for your question.</div>
+
+      <div id="chat" class="chat" aria-live="polite"></div>
+
+      <div class="row">
+        <textarea id="q" placeholder="Ask about City &amp; Guilds 6160, rescue, gas detection, permits, etc."></textarea>
+        <button id="send" type="button">Ask</button>
+      </div>
     </div>
+
+    <footer>
+      <div>© INFRATEC Training • <a href="https://www.infratec-training.com" target="_blank" rel="noopener">infratec-training.com</a></div>
+      <div><span class="accent">New:</span> We automatically log Q&amp;A to Trello for quality &amp; improvements.</div>
+    </footer>
   </div>
 
-  <script src="/script.js"></script>
+  <script src="/script.js" defer></script>
 </body>
 </html>

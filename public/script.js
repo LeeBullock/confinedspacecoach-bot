@@ -8,6 +8,14 @@ function add(role, text) {
   div.textContent = text;
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
+  return div;
+}
+
+function setThinking(node) {
+  let n = 0;
+  const frames = ["…thinking", "…thinking.", "…thinking..", "…thinking..."];
+  const id = setInterval(() => { node.textContent = frames[n++ % frames.length]; }, 300);
+  return () => clearInterval(id);
 }
 
 async function ask() {
@@ -15,22 +23,27 @@ async function ask() {
   if (!question) return;
   add("user", question);
   q.value = "";
-  add("bot", "…thinking…");
+
+  const botNode = add("bot", "…thinking…");
+  const stop = setThinking(botNode);
 
   try {
     const res = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question }),
+      body: JSON.stringify({ question })
     });
+
     const data = await res.json();
-    chat.lastChild.textContent = data.answer || "Sorry, no answer.";
+    stop();
+    botNode.textContent = data.answer || "Sorry, I couldn't generate an answer.";
   } catch (e) {
-    chat.lastChild.textContent = "Error talking to the bot.";
+    stop();
+    botNode.textContent = "Error talking to the bot.";
   }
 }
 
-send.onclick = ask;
+send.addEventListener("click", ask);
 q.addEventListener("keydown", (e) => {
   if ((e.metaKey || e.ctrlKey) && e.key === "Enter") ask();
 });
