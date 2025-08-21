@@ -11,7 +11,7 @@ function add(role, text) {
   return div;
 }
 
-function setThinking(node) {
+function spinner(node) {
   let n = 0;
   const frames = ["…thinking", "…thinking.", "…thinking..", "…thinking..."];
   const id = setInterval(() => { node.textContent = frames[n++ % frames.length]; }, 300);
@@ -25,7 +25,7 @@ async function ask() {
   q.value = "";
 
   const botNode = add("bot", "…thinking…");
-  const stop = setThinking(botNode);
+  const stop = spinner(botNode);
 
   try {
     const res = await fetch("/api/chat", {
