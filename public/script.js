@@ -2,8 +2,8 @@ const chat = document.getElementById("chat");
 const q = document.getElementById("q");
 const send = document.getElementById("send");
 
-// 🔹 Update this with your live API URL (Render/Vercel/etc.)
-const API_BASE = "https://YOUR-SERVICE.onrender.com"; 
+// 🔧 Set to your live backend URL:
+const API_BASE = "https://confinedspacecoachbot.onrender.com";
 
 function add(role, text) {
   const div = document.createElement("div");
@@ -44,6 +44,7 @@ async function ask() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question })
     });
+
     const data = await res.json();
     stop();
     botNode.textContent = data.answer || "Sorry, I couldn't generate an answer.";
@@ -61,3 +62,4 @@ q.addEventListener("keydown", (e) => {
 
 // initial height
 autoresize();
+

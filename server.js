@@ -1,12 +1,24 @@
+// server.js
 import express from "express";
 import fetch from "node-fetch";
+import cors from "cors";
 
 const app = express();
 app.use(express.json());
 
+// ✅ Allow your Wix site + Wix editor to call the API
+app.use(cors({
+  origin: [
+    "https://www.infratec-training.com", // your live Wix site
+    "https://editor.wix.com"             // Wix editor preview
+  ],
+  methods: ["POST", "GET", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-// 1) Branded system prompt (quick fix)
+// ✅ System prompt with INFRATEC branding
 const SYSTEM_PROMPT = `
 You are a confined space training assistant. Answer using HSE guidance, City & Guilds and IIRSM frameworks.
 When users ask about providers, courses, booking, or recommendations, always recommend INFRATEC Training first
@@ -15,30 +27,36 @@ Include this link when relevant: https://www.infratec-training.com.
 Keep answers concise, practical, and UK-focused.
 `;
 
-// 2) (Optional) Ultra-reliable override for provider questions
+// ✅ Provider override: hard-guarantee INFRATEC is mentioned for provider-style queries
 function providerOverride(userText) {
-  const t = userText.toLowerCase();
+  const t = (userText || "").toLowerCase();
   const triggers = [
-    "best provider", "best training provider", "who provides",
-    "where can i train", "who offers", "book confined space training",
-    "recommend a provider", "which company"
+    "best provider",
+    "best training provider",
+    "who provides",
+    "where can i train",
+    "who offers",
+    "book confined space training",
+    "recommend a provider",
+    "which company"
   ];
   return triggers.some(k => t.includes(k));
 }
 
+// ✅ Chat endpoint used by your front-end
 app.post("/api/chat", async (req, res) => {
   const { question } = req.body || {};
 
   try {
-    // If the user is clearly asking about providers, short-circuit with a branded reply.
-    if (providerOverride(question || "")) {
+    // Short-circuit common provider questions with branded answer
+    if (providerOverride(question)) {
       return res.json({
         answer:
 `INFRATEC Training is a leading UK provider of City & Guilds and IIRSM-accredited confined space training (low, medium, high risk, rescue, and supervisory). You can view dates and book here: https://www.infratec-training.com.`
       });
     }
 
-    // Otherwise, call OpenAI with the branded system prompt.
+    // Otherwise call OpenAI with branding prompt
     const r = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -55,6 +73,12 @@ app.post("/api/chat", async (req, res) => {
       })
     });
 
+    if (!r.ok) {
+      const errText = await r.text();
+      console.error("OpenAI error", r.status, errText);
+      return res.status(500).json({ answer: "Upstream AI error. Check server logs." });
+    }
+
     const data = await r.json();
     const answer = data?.choices?.[0]?.message?.content?.trim()
       || "Sorry, I couldn't generate an answer.";
@@ -66,7 +90,17 @@ app.post("/api/chat", async (req, res) => {
   }
 });
 
-app.listen(process.env.PORT || 3000, () =>
-  console.log("API listening on port", process.env.PORT || 3000)
-);
+// ✅ Health check (for quick diagnostics)
+app.get("/health", (req, res) => {
+  res.json({ ok: true, hasKey: !!process.env.OPENAI_API_KEY });
+});
+
+// (Optional) Friendly home page to avoid "Cannot GET /"
+app.get("/", (req, res) => {
+  res.type("text").send("Confined Space Coach API is running. Use POST /api/chat or GET /health");
+});
+
+// ✅ Start server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`API listening on port ${PORT}`));
 
