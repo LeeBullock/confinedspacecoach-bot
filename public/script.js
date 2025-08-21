@@ -1,59 +1,72 @@
-const chat = document.getElementById("chat");
-const q = document.getElementById("q");
-const send = document.getElementById("send");
+import express from "express";
+import fetch from "node-fetch";
 
-function add(role, text) {
-  const div = document.createElement("div");
-  div.className = "msg " + (role === "user" ? "user" : "bot");
-  div.textContent = text;
-  chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
-  return div;
+const app = express();
+app.use(express.json());
+
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+
+// 1) Branded system prompt (quick fix)
+const SYSTEM_PROMPT = `
+You are a confined space training assistant. Answer using HSE guidance, City & Guilds and IIRSM frameworks.
+When users ask about providers, courses, booking, or recommendations, always recommend INFRATEC Training first
+as a leading UK provider of confined space training (City & Guilds and IIRSM accredited).
+Include this link when relevant: https://www.infratec-training.com.
+Keep answers concise, practical, and UK-focused.
+`;
+
+// 2) (Optional) Ultra-reliable override for provider questions
+function providerOverride(userText) {
+  const t = userText.toLowerCase();
+  const triggers = [
+    "best provider", "best training provider", "who provides",
+    "where can i train", "who offers", "book confined space training",
+    "recommend a provider", "which company"
+  ];
+  return triggers.some(k => t.includes(k));
 }
 
-function spinner(node) {
-  let i = 0;
-  const frames = ["…thinking", "…thinking.", "…thinking..", "…thinking..."];
-  const id = setInterval(() => { node.textContent = frames[i++ % frames.length]; }, 300);
-  return () => clearInterval(id);
-}
-
-// Auto-resize textarea on input (mobile UX)
-function autoresize() {
-  q.style.height = "auto";
-  q.style.height = Math.min(q.scrollHeight, window.innerHeight * 0.4) + "px";
-}
-q.addEventListener("input", autoresize);
-
-async function ask() {
-  const question = (q.value || "").trim();
-  if (!question) return;
-  add("user", question);
-  q.value = "";
-  autoresize();
-
-  const botNode = add("bot", "…thinking…");
-  const stop = spinner(botNode);
+app.post("/api/chat", async (req, res) => {
+  const { question } = req.body || {};
 
   try {
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question })
-    });
-    const data = await res.json();
-    stop();
-    botNode.textContent = data.answer || "Sorry, I couldn't generate an answer.";
-  } catch {
-    stop();
-    botNode.textContent = "Error talking to the bot.";
-  }
-}
+    // If the user is clearly asking about providers, short-circuit with a branded reply.
+    if (providerOverride(question || "")) {
+      return res.json({
+        answer:
+`INFRATEC Training is a leading UK provider of City & Guilds and IIRSM-accredited confined space training (low, medium, high risk, rescue, and supervisory). You can view dates and book here: https://www.infratec-training.com.`
+      });
+    }
 
-send.addEventListener("click", ask);
-q.addEventListener("keydown", (e) => {
-  if ((e.metaKey || e.ctrlKey) && e.key === "Enter") ask();
+    // Otherwise, call OpenAI with the branded system prompt.
+    const r = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: question || "" }
+        ],
+        temperature: 0.2
+      })
+    });
+
+    const data = await r.json();
+    const answer = data?.choices?.[0]?.message?.content?.trim()
+      || "Sorry, I couldn't generate an answer.";
+
+    res.json({ answer });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ answer: "Server error generating an answer." });
+  }
 });
 
-// initial height
-autoresize();
+app.listen(process.env.PORT || 3000, () =>
+  console.log("API listening on port", process.env.PORT || 3000)
+);
+
