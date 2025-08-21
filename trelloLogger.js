@@ -1,5 +1,4 @@
-// trelloLogger.js (ESM version)
-
+// trelloLogger.js (ESM)
 const { TRELLO_KEY, TRELLO_TOKEN, TRELLO_LIST_ID } = process.env;
 
 const truncate = (str, n = 120) =>
@@ -21,9 +20,11 @@ export async function logQAtoTrello({ question, answer, userAgent, sourceUrl, ta
 
   const desc = [
     `**Question**`,
-    cleanQ || "—", ``,
+    cleanQ || "—",
+    ``,
     `**Answer**`,
-    cleanA || "—", ``,
+    cleanA || "—",
+    ``,
     `**Meta**`,
     `• Time (UTC): ${new Date().toISOString()}`,
     userAgent ? `• User-Agent: ${userAgent}` : null,
