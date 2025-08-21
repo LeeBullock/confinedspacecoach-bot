@@ -12,9 +12,9 @@ function add(role, text) {
 }
 
 function spinner(node) {
-  let n = 0;
+  let i = 0;
   const frames = ["…thinking", "…thinking.", "…thinking..", "…thinking..."];
-  const id = setInterval(() => { node.textContent = frames[n++ % frames.length]; }, 300);
+  const id = setInterval(() => { node.textContent = frames[i++ % frames.length]; }, 300);
   return () => clearInterval(id);
 }
 
@@ -23,7 +23,6 @@ async function ask() {
   if (!question) return;
   add("user", question);
   q.value = "";
-
   const botNode = add("bot", "…thinking…");
   const stop = spinner(botNode);
 
@@ -33,11 +32,10 @@ async function ask() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question })
     });
-
     const data = await res.json();
     stop();
     botNode.textContent = data.answer || "Sorry, I couldn't generate an answer.";
-  } catch (e) {
+  } catch {
     stop();
     botNode.textContent = "Error talking to the bot.";
   }
