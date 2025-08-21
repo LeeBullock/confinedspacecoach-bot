@@ -18,11 +18,20 @@ function spinner(node) {
   return () => clearInterval(id);
 }
 
+// Auto-resize textarea on input (mobile UX)
+function autoresize() {
+  q.style.height = "auto";
+  q.style.height = Math.min(q.scrollHeight, window.innerHeight * 0.4) + "px";
+}
+q.addEventListener("input", autoresize);
+
 async function ask() {
   const question = (q.value || "").trim();
   if (!question) return;
   add("user", question);
   q.value = "";
+  autoresize();
+
   const botNode = add("bot", "…thinking…");
   const stop = spinner(botNode);
 
@@ -45,3 +54,6 @@ send.addEventListener("click", ask);
 q.addEventListener("keydown", (e) => {
   if ((e.metaKey || e.ctrlKey) && e.key === "Enter") ask();
 });
+
+// initial height
+autoresize();

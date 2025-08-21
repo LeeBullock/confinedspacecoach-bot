@@ -5,55 +5,51 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Confined Space Coach · INFRATEC Training</title>
 
-  <!-- Brand-like fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
 
   <style>
-    /* ===== Palette tuned to your banner ===== */
+    /* Brand palette from your banner */
     :root{
       --navy-900:#0B2138; --navy-700:#17466C; --sky-500:#47B5E6;
       --brand:#0B3D91; --accent:#20A4F3;
       --ink:#0f172a; --muted:#7c8aa3; --card:#fff; --ring:rgba(32,164,243,.18);
-      --radius:14px;
-      --safe: env(safe-area-inset-bottom, 0px);
+      --radius:14px; --safe: env(safe-area-inset-bottom, 0px);
     }
     *{ box-sizing:border-box }
     html,body{ height:100% }
     body{ margin:0; background:#f7fafc; color:var(--ink);
-      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; overflow-x:hidden }
 
-    /* ===== HERO ===== */
+    /* === Compact hero on phones === */
     .hero{
       background: linear-gradient(100deg, var(--navy-900) 0%, var(--navy-700) 55%, var(--sky-500) 100%);
-      color:#fff; padding: 24px 16px 20px; /* mobile-first padding */
+      color:#fff; padding: 14px 12px; /* very tight by default */
     }
-    .hero-inner{ max-width:1100px; margin:0 auto; display:flex; align-items:center; gap:24px; }
+    .hero-inner{ max-width:1100px; margin:0 auto; display:flex; align-items:center; gap:14px }
     .hero-left{ flex:1; min-width:0 }
     .title{
       font-family: Montserrat, Inter, sans-serif;
-      margin:0 0 8px; text-transform:uppercase; letter-spacing:.02em;
-      font-weight:700; line-height:1.05;
-      font-size: 28px; /* mobile-first */
-      word-break: keep-all;
+      margin:0; text-transform:uppercase; letter-spacing:.02em;
+      font-weight:700; line-height:1.05; font-size: 20px; /* tiny on mobile */
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .divider{ width:44px; height:3px; background:#fff; opacity:.5; border-radius:999px; margin:10px 0 12px }
-    .subtitle{ margin:0; font-size:14.5px; line-height:1.55; opacity:.95; max-width:680px }
-    .hero-right{ width:120px; flex:0 0 120px; display:grid; place-items:center }
-    .hero-right img{ width:96px; height:96px; object-fit:contain; filter: drop-shadow(0 10px 24px rgba(0,0,0,.25)); }
+    .divider{ display:none } /* hide on phones */
+    .subtitle{ display:none } /* hide long copy on phones */
+    .hero-right{ display:none } /* hide mascot on phones */
 
-    /* ===== MAIN CARD ===== */
-    .shell{ max-width:980px; margin:-8px auto 20px; padding:0 12px; }
+    /* === Main card === */
+    .shell{ max-width: 980px; margin: 6px auto 16px; padding: 0 10px }
     .surface{
       background:var(--card); border-radius:12px; border:1px solid #e6edf5;
-      box-shadow:0 8px 24px rgba(2,12,27,.06); padding:12px;
+      box-shadow:0 8px 24px rgba(2,12,27,.06); padding:10px;
     }
     .meta{ display:flex; align-items:center; gap:8px; color:#2ba66b; font-size:13px; margin-bottom:8px }
     .dot{ width:9px; height:9px; border-radius:50%; background:#2ba66b }
 
-    /* ===== CHAT ===== */
-    .chat{ display:flex; flex-direction:column; gap:8px; min-height:160px; }
+    /* === Chat === */
+    .chat{ display:flex; flex-direction:column; gap:8px; min-height:140px; }
     .msg{
       padding:9px 11px; border-radius:12px; max-width:92%; white-space:pre-wrap;
       border:1px solid #edf2f7; font-size:15px; line-height:1.4;
@@ -61,52 +57,52 @@
     .msg.user{ align-self:flex-end; background:#f0f7ff; border-color:#dbeafe }
     .msg.bot{ align-self:flex-start; background:#fafafa }
 
-    .row{ position:sticky; bottom:calc(var(--safe) + 0px); background:#fff; padding-top:8px; display:flex; gap:8px }
+    .row{
+      position:sticky; bottom:calc(var(--safe) + 8px);
+      background:#fff; padding-top:8px; display:flex; gap:8px; z-index:2;
+    }
     textarea{
-      flex:1; min-height:52px; resize:vertical; max-height:40vh;
+      flex:1; min-height:48px; max-height:40vh; resize:none;
       padding:10px 12px; border-radius:12px; border:1px solid #dfe3ea; background:#fff;
       outline:none; font-size:15px; line-height:1.35; color:var(--ink);
-      box-shadow:0 0 0 3px transparent;
+      box-shadow:0 0 0 3px transparent; overflow-y:auto;
     }
     textarea:focus{ border-color:var(--brand); box-shadow:0 0 0 3px var(--ring) }
     button{
       padding:12px 14px; border:none; border-radius:12px; cursor:pointer; font-weight:700;
       background:linear-gradient(180deg, var(--brand), #082e6d); color:#fff;
-      box-shadow:0 6px 16px rgba(11,61,145,.22); min-width:88px;
+      box-shadow:0 6px 16px rgba(11,61,145,.22); min-width:84px;
       transition:transform .04s ease;
     }
     button:active{ transform:translateY(1px) }
 
     footer{
-      margin:10px auto calc(14px + var(--safe)); padding:0 12px; max-width:980px;
-      color:var(--muted); font-size:12.5px; display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;
+      margin:8px auto calc(10px + var(--safe));
+      padding:0 10px; max-width:980px; color:var(--muted); font-size:12px;
+      display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;
     }
-    .link{ color:var(--brand) }
 
-    /* ===== Larger screens ===== */
-    @media (min-width: 540px){
-      .title{ font-size:34px }
-      .subtitle{ font-size:15.5px }
+    /* === Scale up on wider screens === */
+    @media (min-width: 480px){
+      .hero{ padding: 20px 16px }
+      .title{ font-size: 26px }
+    }
+    @media (min-width: 900px){
+      .hero{ padding: 40px 24px 32px }
+      .hero-right{ display:grid }
+      .title{ font-size: 38px }
+      .divider{ display:block; width:56px; height:4px; background:#fff; opacity:.5; border-radius:999px; margin:12px 0 10px }
+      .subtitle{ display:block; font-size:16px; line-height:1.6; opacity:.95; max-width:700px; margin:0 }
+      .shell{ margin:-8px auto 24px; padding:0 24px }
       .surface{ padding:16px; border-radius:14px }
-      .chat{ min-height:200px }
+      .chat{ min-height:220px }
       .row{ gap:10px }
       button{ min-width:100px }
     }
-    @media (min-width: 900px){
-      .hero{ padding: 40px 24px 36px }
-      .title{ font-size:38px }
-      .subtitle{ font-size:16.5px }
-      .hero-right{ display:grid }  /* show mascot on desktop */
-      .shell{ margin:-16px auto 24px; padding:0 24px }
-      .surface{ padding:18px }
-      .chat{ min-height:260px }
-    }
-    /* Prevent horizontal scroll on very small iframes */
-    body{ overflow-x:hidden }
   </style>
 </head>
 <body>
-  <!-- HERO -->
+  <!-- HERO (compact on phones) -->
   <section class="hero">
     <div class="hero-inner">
       <div class="hero-left">
@@ -118,7 +114,7 @@
         </p>
       </div>
       <div class="hero-right">
-        <img src="/assets/coach-bot.png" alt="Coach Bot" onerror="this.style.display='none'">
+        <img src="/assets/coach-bot.png" alt="Coach Bot" width="110" height="110" onerror="this.style.display='none'">
       </div>
     </div>
   </section>
@@ -138,7 +134,7 @@
   </main>
 
   <footer>
-    <div>© INFRATEC Training • <a class="link" href="https://www.infratec-training.com" target="_blank" rel="noopener">infratec-training.com</a></div>
+    <div>© INFRATEC Training</div>
     <div>Q&amp;A are logged privately for quality improvements.</div>
   </footer>
 
