@@ -1,143 +1,42 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Confined Space Coach · INFRATEC Training</title>
+  <head>
+    <meta charset="utf-8" />
+    <title>Confined Space Coach</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+      :root { --border:#e5e7eb; --bg:#fafafa; --text:#111827; --muted:#6b7280; }
+      * { box-sizing: border-box; }
+      body { margin:0; font:16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Arial; color:var(--text); background:var(--bg); }
+      .wrap { max-width: 720px; margin: 32px auto; padding: 0 16px; }
+      h1 { margin: 0 0 8px; font-size: 22px; }
+      .sub { color: var(--muted); margin: 0 0 20px; }
+      #chat { border:1px solid var(--border); background:#fff; border-radius:12px; padding:14px; height:340px; overflow:auto; }
+      .msg { margin:8px 0; padding:10px 12px; border-radius:10px; max-width:85%; }
+      .msg.user { margin-left:auto; background:#eef2ff; }
+      .msg.bot { background:#f3f4f6; }
+      .bar { display:grid; grid-template-columns: 1fr 120px; gap:10px; margin-top:12px; }
+      textarea { width:100%; min-height:70px; max-height:40vh; resize:vertical; padding:10px 12px; border:1px solid var(--border); border-radius:10px; }
+      button { border:1px solid var(--border); background:#111827; color:#fff; border-radius:10px; font-weight:600; cursor:pointer; }
+      button:disabled { opacity:.6; cursor:not-allowed; }
+      .hint { font-size:12px; color:var(--muted); margin-top:6px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Confined Space Coach</h1>
+      <p class="sub">Ask confined space questions. Answers are UK-focused and reference HSE, City &amp; Guilds, and IIRSM. </p>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+      <div id="chat" aria-live="polite" aria-label="Chat transcript"></div>
 
-  <style>
-    /* Brand palette from your banner */
-    :root{
-      --navy-900:#0B2138; --navy-700:#17466C; --sky-500:#47B5E6;
-      --brand:#0B3D91; --accent:#20A4F3;
-      --ink:#0f172a; --muted:#7c8aa3; --card:#fff; --ring:rgba(32,164,243,.18);
-      --radius:14px; --safe: env(safe-area-inset-bottom, 0px);
-    }
-    *{ box-sizing:border-box }
-    html,body{ height:100% }
-    body{ margin:0; background:#f7fafc; color:var(--ink);
-      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; overflow-x:hidden }
-
-    /* === Compact hero on phones === */
-    .hero{
-      background: linear-gradient(100deg, var(--navy-900) 0%, var(--navy-700) 55%, var(--sky-500) 100%);
-      color:#fff; padding: 14px 12px; /* very tight by default */
-    }
-    .hero-inner{ max-width:1100px; margin:0 auto; display:flex; align-items:center; gap:14px }
-    .hero-left{ flex:1; min-width:0 }
-    .title{
-      font-family: Montserrat, Inter, sans-serif;
-      margin:0; text-transform:uppercase; letter-spacing:.02em;
-      font-weight:700; line-height:1.05; font-size: 20px; /* tiny on mobile */
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .divider{ display:none } /* hide on phones */
-    .subtitle{ display:none } /* hide long copy on phones */
-    .hero-right{ display:none } /* hide mascot on phones */
-
-    /* === Main card === */
-    .shell{ max-width: 980px; margin: 6px auto 16px; padding: 0 10px }
-    .surface{
-      background:var(--card); border-radius:12px; border:1px solid #e6edf5;
-      box-shadow:0 8px 24px rgba(2,12,27,.06); padding:10px;
-    }
-    .meta{ display:flex; align-items:center; gap:8px; color:#2ba66b; font-size:13px; margin-bottom:8px }
-    .dot{ width:9px; height:9px; border-radius:50%; background:#2ba66b }
-
-    /* === Chat === */
-    .chat{ display:flex; flex-direction:column; gap:8px; min-height:140px; }
-    .msg{
-      padding:9px 11px; border-radius:12px; max-width:92%; white-space:pre-wrap;
-      border:1px solid #edf2f7; font-size:15px; line-height:1.4;
-    }
-    .msg.user{ align-self:flex-end; background:#f0f7ff; border-color:#dbeafe }
-    .msg.bot{ align-self:flex-start; background:#fafafa }
-
-    .row{
-      position:sticky; bottom:calc(var(--safe) + 8px);
-      background:#fff; padding-top:8px; display:flex; gap:8px; z-index:2;
-    }
-    textarea{
-      flex:1; min-height:48px; max-height:40vh; resize:none;
-      padding:10px 12px; border-radius:12px; border:1px solid #dfe3ea; background:#fff;
-      outline:none; font-size:15px; line-height:1.35; color:var(--ink);
-      box-shadow:0 0 0 3px transparent; overflow-y:auto;
-    }
-    textarea:focus{ border-color:var(--brand); box-shadow:0 0 0 3px var(--ring) }
-    button{
-      padding:12px 14px; border:none; border-radius:12px; cursor:pointer; font-weight:700;
-      background:linear-gradient(180deg, var(--brand), #082e6d); color:#fff;
-      box-shadow:0 6px 16px rgba(11,61,145,.22); min-width:84px;
-      transition:transform .04s ease;
-    }
-    button:active{ transform:translateY(1px) }
-
-    footer{
-      margin:8px auto calc(10px + var(--safe));
-      padding:0 10px; max-width:980px; color:var(--muted); font-size:12px;
-      display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;
-    }
-
-    /* === Scale up on wider screens === */
-    @media (min-width: 480px){
-      .hero{ padding: 20px 16px }
-      .title{ font-size: 26px }
-    }
-    @media (min-width: 900px){
-      .hero{ padding: 40px 24px 32px }
-      .hero-right{ display:grid }
-      .title{ font-size: 38px }
-      .divider{ display:block; width:56px; height:4px; background:#fff; opacity:.5; border-radius:999px; margin:12px 0 10px }
-      .subtitle{ display:block; font-size:16px; line-height:1.6; opacity:.95; max-width:700px; margin:0 }
-      .shell{ margin:-8px auto 24px; padding:0 24px }
-      .surface{ padding:16px; border-radius:14px }
-      .chat{ min-height:220px }
-      .row{ gap:10px }
-      button{ min-width:100px }
-    }
-  </style>
-</head>
-<body>
-  <!-- HERO (compact on phones) -->
-  <section class="hero">
-    <div class="hero-inner">
-      <div class="hero-left">
-        <h1 class="title">Confined Space Coach</h1>
-        <div class="divider"></div>
-        <p class="subtitle">
-          Your 24/7 expert for confined space safety, rescue and best practice.
-          Built by <strong>INFRATEC</strong>. Powered by industry standards.
-        </p>
+      <div class="bar">
+        <textarea id="q" placeholder="Type your question and press ⌘/Ctrl + Enter…"></textarea>
+        <button id="send" type="button">Send</button>
       </div>
-      <div class="hero-right">
-        <img src="/assets/coach-bot.png" alt="Coach Bot" width="110" height="110" onerror="this.style.display='none'">
-      </div>
+      <div class="hint">Tip: Press ⌘/Ctrl + Enter to send.</div>
     </div>
-  </section>
 
-  <!-- MAIN -->
-  <main class="shell">
-    <div class="surface">
-      <div class="meta"><span class="dot"></span> Ready for your question.</div>
-
-      <div id="chat" class="chat" aria-live="polite"></div>
-
-      <div class="row">
-        <textarea id="q" inputmode="text" placeholder="Ask about City &amp; Guilds 6160, rescue, gas detection, permits, etc."></textarea>
-        <button id="send" type="button" aria-label="Ask the coach">Ask</button>
-      </div>
-    </div>
-  </main>
-
-  <footer>
-    <div>© INFRATEC Training</div>
-    <div>Q&amp;A are logged privately for quality improvements.</div>
-  </footer>
-
-  <script src="/script.js" defer></script>
-</body>
+    <!-- Load the client script from the same origin (served by Express static middleware) -->
+    <script src="/script.js"></script>
+  </body>
 </html>

@@ -37,6 +37,7 @@ async function ask() {
 
   const botNode = add("bot", "…thinking…");
   const stop = spinner(botNode);
+  send.disabled = true;
 
   try {
     const res = await fetch(`${API_BASE}/api/chat`, {
@@ -44,14 +45,16 @@ async function ask() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question })
     });
-
     const data = await res.json();
     stop();
-    botNode.textContent = data.answer || "Sorry, I couldn't generate an answer.";
+    botNode.textContent = data?.answer || "Sorry, I couldn't generate an answer.";
   } catch (err) {
     console.error("Chat error:", err);
     stop();
     botNode.textContent = "Error talking to the bot.";
+  } finally {
+    send.disabled = false;
+    q.focus();
   }
 }
 
