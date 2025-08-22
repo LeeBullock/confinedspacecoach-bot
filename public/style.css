@@ -90,19 +90,34 @@ body{
   padding-top:10px;
   background: var(--panel);
 }
+/* INPUT AREA */
+.input-area{
+  position: sticky;
+  bottom: 0;
+  display:grid;
+  grid-template-columns: 1fr 130px; /* wider send button on desktop */
+  gap:12px;
+  margin-top:12px;
+  padding-top:10px;
+  background: var(--panel);
+}
+
 .input{
   width:100%;
-  min-height:62px;
-  max-height: 40vh;
+  min-height: 110px;          /* 🔹 bigger default height */
+  max-height: 60vh;           /* allow a tall box if the user types loads */
   resize: vertical;
-  padding:12px 12px;
+  padding:14px 14px;
   border:1px solid var(--border);
   border-radius:12px;
-  font:inherit;
-  line-height:1.4;
+  font:16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, Arial; /* 16px avoids iOS zoom */
   outline: none;
 }
-.input:focus{ border-color: var(--brand-mid); box-shadow: 0 0 0 3px rgba(67,179,230,.18); }
+.input:focus{
+  border-color: var(--brand-mid);
+  box-shadow: 0 0 0 3px rgba(67,179,230,.18);
+}
+
 .btn{
   border: none;
   background: var(--brand-mid);
@@ -111,10 +126,25 @@ body{
   font-weight:700;
   cursor:pointer;
   transition: transform .05s ease, background .2s ease;
+  min-height: 56px;           /* 🔹 bigger tap target */
+  font-size: 16px;
 }
 .btn:hover{ background: #2283c4; }
 .btn:active{ transform: translateY(1px); }
 .btn:disabled{ opacity:.6; cursor:not-allowed; }
+
+/* MOBILE TWEAKS */
+@media (max-width: 640px){
+  .chat-card{ min-height: 72vh; }
+  .input-area{
+    grid-template-columns: 1fr; /* 🔹 stack on mobile: textarea then full-width button */
+  }
+  .btn{
+    width:100%;
+    min-height: 60px;          /* 🔹 even larger button on phones */
+  }
+  .msg{ font-size: 15px; }
+}
 
 /* SMALL TEXT */
 .small-hint{ color:var(--muted); font-size:12px; margin:10px 2px 0; }

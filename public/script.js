@@ -23,9 +23,12 @@ function spinner(node) {
 
 // Auto-resize textarea on input (better mobile UX)
 function autoresize() {
+  const isMobile = window.matchMedia('(max-width: 640px)').matches;
+  const cap = isMobile ? 0.6 : 0.4;   // 🔹 allow more height on mobile
   q.style.height = "auto";
-  q.style.height = Math.min(q.scrollHeight, window.innerHeight * 0.4) + "px";
+  q.style.height = Math.min(q.scrollHeight, window.innerHeight * cap) + "px";
 }
+
 q.addEventListener("input", autoresize);
 
 async function ask() {
