@@ -2,37 +2,46 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Confined Space Coach</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <style>
-      :root { --border:#e5e7eb; --bg:#fafafa; --text:#111827; --muted:#6b7280; }
-      * { box-sizing: border-box; }
-      body { margin:0; font:16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Arial; color:var(--text); background:var(--bg); }
-      .wrap { max-width: 720px; margin: 32px auto; padding: 0 16px; }
-      h1 { margin: 0 0 8px; font-size: 22px; }
-      .sub { color: var(--muted); margin: 0 0 20px; }
-      #chat { border:1px solid var(--border); background:#fff; border-radius:12px; padding:14px; height:340px; overflow:auto; }
-      .msg { margin:8px 0; padding:10px 12px; border-radius:10px; max-width:85%; }
-      .msg.user { margin-left:auto; background:#eef2ff; }
-      .msg.bot { background:#f3f4f6; }
-      .bar { display:grid; grid-template-columns: 1fr 120px; gap:10px; margin-top:12px; }
-      textarea { width:100%; min-height:70px; max-height:40vh; resize:vertical; padding:10px 12px; border:1px solid var(--border); border-radius:10px; }
-      button { border:1px solid var(--border); background:#111827; color:#fff; border-radius:10px; font-weight:600; cursor:pointer; }
-      button:disabled { opacity:.6; cursor:not-allowed; }
-      .hint { font-size:12px; color:var(--muted); margin-top:6px; }
-    </style>
+    <title>Confined Space Coach | INFRATEC Training</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="/style.css">
   </head>
   <body>
-    <div class="wrap">
-      <h1>Confined Space Coach</h1>
-      <p class="sub">Ask confined space questions. UK-focused answers referencing HSE, City & Guilds, and IIRSM.</p>
-      <div id="chat" aria-live="polite" aria-label="Chat transcript"></div>
-      <div class="bar">
-        <textarea id="q" placeholder="Type your question and press ⌘/Ctrl + Enter…"></textarea>
-        <button id="send" type="button">Send</button>
+    <!-- Brand hero with gradient (matches site banner) -->
+    <header class="hero">
+      <div class="hero-inner">
+        <div class="brand">
+          <span class="brand-main">INFRATEC</span><span class="brand-sep"> | </span><span class="brand-sub">TRAINING</span>
+        </div>
+        <div class="hero-title">CONFINED SPACE QUESTIONS</div>
+        <div class="hero-sub">Get Expert Answers Instantly</div>
       </div>
-      <div class="hint">Tip: Press ⌘/Ctrl + Enter to send.</div>
-    </div>
+    </header>
+
+    <main class="wrap">
+      <section class="chat-card" aria-label="Confined Space Coach chatbot">
+        <div id="chat" class="chat" aria-live="polite" aria-label="Chat transcript"></div>
+
+        <div class="input-area">
+          <textarea id="q" class="input" placeholder="Ask your question… (⌘/Ctrl + Enter to send)" autocomplete="off"></textarea>
+          <button id="send" class="btn" type="button" aria-label="Send message">Send</button>
+        </div>
+
+        <p class="small-hint">Answers are UK-focused and reference HSE, City &amp; Guilds, and IIRSM guidance.</p>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        © <span id="year"></span> INFRATEC Training • Confined Space Coach
+      </div>
+    </footer>
+
+    <script>
+      // keep footer year current
+      document.getElementById("year").textContent = new Date().getFullYear();
+    </script>
     <script src="/script.js"></script>
   </body>
 </html>

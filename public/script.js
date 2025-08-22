@@ -2,7 +2,8 @@ const chat = document.getElementById("chat");
 const q = document.getElementById("q");
 const send = document.getElementById("send");
 
-const API_BASE = ""; // same-origin; set to your Render URL ONLY if embedding just this script on Wix.
+// Same-origin (served by your Render app). If you embed only the script on Wix, set your full URL here.
+const API_BASE = ""; // e.g. "https://confinedspacecoachbot.onrender.com" when embedding elsewhere.
 
 function add(role, text) {
   const div = document.createElement("div");
@@ -20,6 +21,7 @@ function spinner(node) {
   return () => clearInterval(id);
 }
 
+// Auto-resize textarea on input (better mobile UX)
 function autoresize() {
   q.style.height = "auto";
   q.style.height = Math.min(q.scrollHeight, window.innerHeight * 0.4) + "px";
@@ -62,4 +64,5 @@ q.addEventListener("keydown", (e) => {
   if ((e.metaKey || e.ctrlKey) && e.key === "Enter") ask();
 });
 
+// initial height
 autoresize();
